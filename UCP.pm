@@ -1703,6 +1703,8 @@ sub encode_7bit {
 
     defined($msg) && length($msg) || return ('00');    # Zero length user data.
 
+    $msg =~ tr/@$\xe8\xe9\xf9\xec\xf2\xe0/\x00\x02\x05\x04\x06\x07\x08\x7f/;
+
     for (split(//, $msg)) {
         $bit_string .= unpack('b7', $_);
     }
