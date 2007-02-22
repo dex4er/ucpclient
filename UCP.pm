@@ -215,7 +215,7 @@ sub make_01 {
         my $text =
           (defined $arg{nmsg} && !defined $arg{amsg})
           ? $arg{nmsg}
-          : $self->encode_ira($arg{amsg});
+          : (defined $arg{amsg} ? $self->encode_ira($arg{amsg}) : '');
 
         my $string =
             (defined $arg{adc} ? $arg{adc} : '')
@@ -1723,7 +1723,7 @@ sub decode_ira {
     my $self = shift;
     my $msg = shift;
 
-    if ($msg =~ /^ /) {
+    if ($msg =~ s/^ //) {
 	return $msg;
     }
     my $out = pack "H*", $msg;
