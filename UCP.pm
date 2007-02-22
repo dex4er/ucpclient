@@ -1678,7 +1678,15 @@ sub data_len {
 sub convert_sms_to_ascii {
     my $self = shift;
     my $msg = shift;
-    $msg =~ tr/\x00\x02\x05\x04\x06\x07\x08\x7f/@$\xe8\xe9\xf9\xec\xf2\xe0/ if $msg;
+    $msg =~ tr/\x00\x02\x05\x04\x06\x07\x08\x7f/@$\xe8\xe9\xf9\xec\xf2\xe0/ if defined $msg;
+    return $msg;
+}
+
+
+sub convert_ascii_to_sms {
+    my $self = shift;
+    my $msg = shift;
+    $msg =~ tr/@$\xe8\xe9\xf9\xec\xf2\xe0/\x00\x02\x05\x04\x06\x07\x08\x7f/ if defined $msg;
     return $msg;
 }
 
@@ -1686,11 +1694,19 @@ sub convert_sms_to_ascii {
 sub decode_7bit {
     my $self = shift;
     my $msg = shift;
+
     return $msg if $msg =~ /[^0-9A-F]/i;
+
     $msg =~ s/^(..)//;
+    my $len = (hex($1)+2)*4;
+
     my $bit = unpack("b*", pack("H*", $msg));
     $bit =~ s/(.{7})/$1./g;
-    my $out = pack("b*", substr($bit, 0, int(length($bit)/8)*8));
+
+    $bit = substr($bit, 0, $len);
+    $bit = substr($bit, 0, int(length($bit)/8)*8);
+
+    my $out = pack("b*", $bit);
     return $self->convert_sms_to_ascii($out);
 }
 
@@ -1698,26 +1714,17 @@ sub decode_7bit {
 sub encode_7bit {
     my $self = shift;
     my $msg = shift;
-    my ($bit_string, $user_data) = ('', '');
-    my ($octet, $rest);
+    
+    $msg = $self->convert_ascii_to_sms($msg);
 
-    defined($msg) && length($msg) || return ('00');    # Zero length user data.
+    my $len = length($msg) * 2;
+    $len = $len - ($len > 6 ? int($len/8) : 0);
 
-    $msg =~ tr/@$\xe8\xe9\xf9\xec\xf2\xe0/\x00\x02\x05\x04\x06\x07\x08\x7f/;
+    my $bit = unpack("b*", $msg);
+    $bit =~ s/(.{7})./$1/g;
 
-    for (split(//, $msg)) {
-        $bit_string .= unpack('b7', $_);
-    }
-
-    while (defined($bit_string) && (length($bit_string))) {
-        $rest = $octet = substr($bit_string, 0, 8);
-        $user_data .= unpack("H2", pack("b8", substr($octet . '0' x 7, 0, 8)));
-        $bit_string = (length($bit_string) > 8) ? substr($bit_string, 8) : '';
-    }
-
-    sprintf("%02X",
-        length($rest) < 5 ? length($user_data) - 1 : length($user_data))
-      . uc($user_data);
+    my $out = uc unpack("H*", pack("b*", $bit));
+    return sprintf "%02X%s", $len, $out;
 }
 
 
