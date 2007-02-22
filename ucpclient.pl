@@ -1,0 +1,168 @@
+#!/usr/bin/perl
+
+use strict;
+use Time::HiRes qw(gettimeofday tv_interval);
+use UCP;
+
+
+my %opt = ();
+while (@ARGV) {
+    if ($ARGV[0] =~ m/^(.*)=(.*)$/) {
+        $opt{$1} = $2;
+        shift;
+    }
+}
+
+
+$opt{Requests} = 1 unless exists $opt{Requests};
+
+$opt{ParserHook} = \&parser_hook;
+$opt{SenderHook} = \&sender_hook;
+$opt{ReceiverHook} = \&receiver_hook;
+
+$opt{DebugLevel} = 2 unless exists $opt{DebugLevel};
+$opt{DebugId} = 'C' unless exists $opt{DebugId};
+
+my $ucp = UCP::Manager->new(%opt) or die;
+
+
+sub o_51 {
+    return $ucp->make_message(
+        %opt,
+        trn       => '00',
+        op        => exists $opt{op} ? $opt{op} : 51,
+        operation => 1,
+        mt        => exists $opt{mt} ? $opt{mt} : 3,
+    );
+}
+
+
+sub o_60 {
+    return $ucp->make_message(
+        trn       => '00',
+        op        => 60,
+        operation => 1,
+        pwd       => $opt{pwd},
+        onpi      => 5,
+        oton      => 6,
+        styp      => 1,
+        vers      => '0100',
+	oadc      => $opt{oadc},
+    );
+}
+
+
+sub r_xx_a {
+    my $ref_msg = shift;
+    return $ucp->make_message(
+            op => $ref_msg->{ot},
+            result => 1,
+            trn => $ref_msg->{trn},
+            ack => UCP::ACK,
+            sm => $ref_msg->{adc} . ':' . $ucp->make_scts,
+    );
+}
+
+
+sub r_xx_n_02 {
+    my $ref_msg = shift;
+    return $ucp->make_message(
+            op => $ref_msg->{ot},
+            result => 1,
+            trn => $ref_msg->{trn},
+            nack => UCP::NACK,
+            ec => '02',
+            sm => ' '.$ucp->ec_string('02'),
+    );
+}
+
+
+my %counter : shared = ();
+my $is_authorized : shared = 0;
+
+
+sub sender_hook {
+    my $self = shift;
+    my $msg = shift;
+    $counter{o}++ if $self->is_operation_message($msg);
+    return $msg;
+}
+
+
+sub parser_hook {
+    my $self = shift;
+    my $msg = shift;
+    my $ref_msg = $self->parse_message($msg);
+    if ($self->is_result_message($ref_msg) and $ref_msg->{ot} eq '51') {
+        $counter{r_51}++;
+        $counter{r_51_ack}++ if exists $ref_msg->{ack} and $ref_msg->{ack} eq UCP::ACK;
+    }
+    elsif ($self->is_result_message($ref_msg) and $ref_msg->{ot} eq '60') {
+        $is_authorized = $ref_msg->{ack} ? 1 : 0;
+    }
+    else {
+        $counter{unknown}++;
+        $self->send(r_xx_n_02($ref_msg)) if $self->is_operation_message($ref_msg);
+    }
+    return $msg;
+}
+
+
+sub receiver_hook {
+    my $self = shift;
+    my $msg = shift;
+    return $msg;
+}
+
+
+sub show_stats {
+    $ucp->debug(msg=>sprintf('%d msgs sent, %d msgs responsed, %d msgs ack, %d msgs unknown',
+        $counter{o}, $counter{r_51}, $counter{r_51_ack}, $counter{unknown}));
+}
+
+
+sub SIGUSR1_handler {
+    show_stats;
+    $SIG{USR1} = \&SIGUSR1_handler;
+}
+$SIG{USR1} = \&SIGUSR1_handler;
+
+
+sub main {
+    $ucp->create;
+
+    my $t0 = [gettimeofday] if $opt{Benchmark};
+    my $elapsed = 0;
+
+    TRANSFER: {
+
+        if ($opt{pwd}) {
+            $ucp->send(o_60);
+            $ucp->wait_all_trn;
+            select(undef,undef,undef,1); # wait for parser
+            last unless $is_authorized;
+        }
+
+        for (my $n = 0; $opt{Requests} == 0 || $n < $opt{Requests}; $n++) {
+            $ucp->send(o_51) or last;
+            select(undef, undef, undef, $opt{Delay}) if $opt{Delay};
+            $ucp->wait_free_trn;
+        }
+
+        select(undef, undef, undef, $opt{Sleep}) if $opt{Sleep};
+
+        $ucp->wait_all_trn;
+
+        $elapsed = tv_interval ($t0) if $opt{Benchmark};
+
+    }
+
+    $ucp->join;
+
+    show_stats;
+
+    printf "%.2f\n", $elapsed - $is_authorized if $opt{Benchmark} and $is_authorized;
+
+}
+
+main;
