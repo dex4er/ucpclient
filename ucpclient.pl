@@ -52,6 +52,17 @@ sub o_60 {
 }
 
 
+sub r_60_a {
+    my $ref_msg = shift;
+    return $ucp->make_message(
+            op => $ref_msg->{ot},
+            result => 1,
+            trn => $ref_msg->{trn},
+            ack => UCP::ACK,
+    );
+}
+
+
 sub r_xx_a {
     my $ref_msg = shift;
     return $ucp->make_message(
@@ -99,6 +110,9 @@ sub parser_hook {
     }
     elsif ($self->is_result_message($ref_msg) and $ref_msg->{ot} eq '60') {
         $is_authorized = $ref_msg->{ack} ? 1 : 0;
+    }
+    elsif ($self->is_operation_message($ref_msg) and $ref_msg->{ot} eq '60') {
+	$self->send(r_60_a($ref_msg));
     }
     else {
         $counter{unknown}++;
