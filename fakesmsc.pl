@@ -4,6 +4,11 @@ use strict;
 use UCP;
 
 
+# Options:
+#   La=<LA number returned in O/53 if alphanumeric OAdc was used>
+#   DebugLevel
+#   DebugId
+
 my %opt = ();
 
 while (@ARGV) {
@@ -51,7 +56,7 @@ sub connection {
 
 	    my $is_unknown = 0;
 	    my $is_positive = 1;
-            if ($ref_msg->{amsg} =~ /^R51([+-])(\d+)/) {
+            if ($ref_msg->{amsg} =~ /R51([+-])(\d+)/) {
 		$is_positive = $1 eq '+' ? 1 : 0;
 		my $delay = $2;
 		sleep($delay);
@@ -85,7 +90,7 @@ sub connection {
                 $ucp->send($send_msg);
             }
 
-            if ($ref_msg->{amsg} =~ /^O53([+\?-])(\d+)/) {
+            if ($ref_msg->{amsg} =~ /O53([+\?-])(\d+)/) {
 		$is_positive = $1 eq '+' ? 1 : 0;
 		$is_unknown = $1 eq '?' ? 1 : 0;
 		my $delay = $2;
@@ -110,7 +115,7 @@ sub connection {
                 my $send_msg = $ucp->make_message(
                     op => '53',
                     operation => 1,
-                    adc => $ref_msg->{oadc},
+		    adc => $ref_msg->{otoa} == 5039 ? $opt{La} : $ref_msg->{oadc},
                     amsg => sprintf($amsg, $ref_msg->{adc}, $id),
                     mt => 3,
                     oadc => $ref_msg->{adc},
