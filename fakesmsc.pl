@@ -125,7 +125,7 @@ sub connection {
 
         elsif ($ref_msg->{type} eq UCP::OPERATION and $ref_msg->{ot} eq '60') {
 	    my $resp_msg;
-	    if ($ref_msg->{pwd} eq 'pwd') {
+	    if ($ref_msg->{pwd} eq $opt{pwd}) {
         	$resp_msg = $ucp->make_message(
             	    op => '60',
                     result => 1,
