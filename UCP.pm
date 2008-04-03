@@ -195,7 +195,7 @@ sub parse_01 {
         else {
             $mess{nack}     = $ucp[4];
             $mess{ec}       = $ucp[5];
-            $mess{sm}       = $self->decode_ira($ucp[6]);
+            $mess{sm}       = $ucp[6];
             $mess{checksum} = $ucp[7];
         }
     }
@@ -278,7 +278,7 @@ sub make_01 {
               . UCP::UCP_DELIMITER
               . (defined $arg{ec} ? $arg{ec} : '')
               . UCP::UCP_DELIMITER
-              . (defined $arg{sm} ? ($arg{sm} =~ /^ / ? $arg{sm} : $self->encode_ira($arg{sm})) : '');
+              . (defined $arg{sm} ? $arg{sm} : '');
 
             my $header =
                 sprintf("%02d", $arg{trn})
@@ -338,7 +338,7 @@ sub parse_02 {
         else {
             $mess{nack}     = $ucp[4];
             $mess{ec}       = $ucp[5];
-            $mess{sm}       = $self->decode_ira($ucp[6]);
+            $mess{sm}       = $ucp[6];
             $mess{checksum} = $ucp[7];
         }
     }
@@ -423,7 +423,7 @@ sub make_02 {
               . UCP::UCP_DELIMITER
               . (defined $arg{ec} ? $arg{ec} : '')
               . UCP::UCP_DELIMITER
-              . (defined $arg{sm} ? ($arg{sm} =~ /^ / ? $arg{sm} : $self->encode_ira($arg{sm})) : '');
+              . (defined $arg{sm} ? $arg{sm} : '');
 
             my $header =
                 sprintf("%02d", $arg{trn})
@@ -493,7 +493,7 @@ sub parse_03 {
         else {
             $mess{nack}     = $ucp[4];
             $mess{ec}       = $ucp[5];
-            $mess{sm}       = $self->decode_ira($ucp[6]);
+            $mess{sm}       = $ucp[6];
             $mess{checksum} = $ucp[7];
         }
     }
@@ -598,7 +598,7 @@ sub make_03 {
               . UCP::UCP_DELIMITER
               . (defined $arg{ec} ? $arg{ec} : '')
               . UCP::UCP_DELIMITER
-              . (defined $arg{sm} ? ($arg{sm} =~ /^ / ? $arg{sm} : $self->encode_ira($arg{sm})) : '');
+              . (defined $arg{sm} ? $arg{sm} : '');
 
             my $header =
                 sprintf("%02d", $arg{trn})
@@ -661,7 +661,7 @@ sub parse_30 {
         else {
             $mess{nack}     = $ucp[4];
             $mess{ec}       = $ucp[5];
-            $mess{sm}       = $self->decode_ira($ucp[6]);
+            $mess{sm}       = $ucp[6];
             $mess{checksum} = $ucp[7];
         }
     }
@@ -753,7 +753,7 @@ sub make_30 {
               . UCP::UCP_DELIMITER
               . (defined $arg{ec} ? $arg{ec} : '')
               . UCP::UCP_DELIMITER
-              . (defined $arg{sm} ? ($arg{sm} =~ /^ / ? $arg{sm} : $self->encode_ira($arg{sm})) : '');
+              . (defined $arg{sm} ? $arg{sm} : '');
 
             my $header =
                 sprintf("%02d", $arg{trn})
@@ -807,7 +807,7 @@ sub parse_31 {
         else {
             $mess{nack}     = $ucp[4];
             $mess{ec}       = $ucp[5];
-            $mess{sm}       = $self->decode_ira($ucp[6]);
+            $mess{sm}       = $ucp[6];
             $mess{checksum} = $ucp[7];
         }
     }
@@ -879,7 +879,7 @@ sub make_31 {
               . UCP::UCP_DELIMITER
               . (defined $arg{ec} ? $arg{ec} : '')
               . UCP::UCP_DELIMITER
-              . (defined $arg{sm} ? ($arg{sm} =~ /^ / ? $arg{sm} : $self->encode_ira($arg{sm})) : '');
+              . (defined $arg{sm} ? $arg{sm} : '');
 
             my $header =
                 sprintf("%02d", $arg{trn})
@@ -971,7 +971,7 @@ sub _parse_5x {
         else {
             $mess{nack}     = $ucp[4];
             $mess{ec}       = $ucp[5];
-            $mess{sm}       = $self->decode_ira($ucp[6]);
+            $mess{sm}       = $ucp[6];
             $mess{checksum} = $ucp[7];
         }
     }
@@ -1297,7 +1297,7 @@ sub parse_60 {
         else {
             $mess{nack}     = $ucp[4];
             $mess{ec}       = $ucp[5];
-            $mess{sm}       = $self->decode_ira($ucp[6]);
+            $mess{sm}       = $ucp[6];
             $mess{checksum} = $ucp[7];
         }
     }
@@ -1401,7 +1401,7 @@ sub make_60 {
               . UCP::UCP_DELIMITER
               . (defined $arg{ec} ? $arg{ec} : '')
               . UCP::UCP_DELIMITER
-              . (defined $arg{sm} ? ($arg{sm} =~ /^ / ? $arg{sm} : $self->encode_ira($arg{sm})) : '');
+              . (defined $arg{sm} ? $arg{sm} : '');
 
             my $header =
                 sprintf("%02d", $arg{trn})
@@ -1516,7 +1516,7 @@ sub make_61 {
               . UCP::UCP_DELIMITER
               . (defined $arg{ec} ? $arg{ec} : '')
               . UCP::UCP_DELIMITER
-              . (defined $arg{sm} ? ($arg{sm} =~ /^ / ? $arg{sm} : $self->encode_ira($arg{sm})) : '');
+              . (defined $arg{sm} ? $arg{sm} : '');
 
             my $header =
                 sprintf("%02d", $arg{trn})
@@ -1678,7 +1678,9 @@ sub data_len {
 sub convert_sms_to_ascii {
     my $self = shift;
     my $msg = shift;
-    $msg =~ tr/\x00\x02\x05\x04\x06\x07\x08\x7f/@$\xe8\xe9\xf9\xec\xf2\xe0/ if defined $msg;
+    $msg =~ tr{\x00\x02\x05\x04\x06\x07\x08\x11\x5f\x7f}
+              {\x40\x24\xe8\xe9\xf9\xec\xf2\x5f\xa7\xe0}
+        if defined $msg;
     return $msg;
 }
 
@@ -1686,7 +1688,9 @@ sub convert_sms_to_ascii {
 sub convert_ascii_to_sms {
     my $self = shift;
     my $msg = shift;
-    $msg =~ tr/@$\xe8\xe9\xf9\xec\xf2\xe0/\x00\x02\x05\x04\x06\x07\x08\x7f/ if defined $msg;
+    $msg =~ tr{\x40\x24\xe8\xe9\xf9\xec\xf2\x5f\xa7\xe0}
+	      {\x00\x02\x05\x04\x06\x07\x08\x11\x5f\x7f}
+        if defined $msg;
     return $msg;
 }
 
@@ -1695,6 +1699,7 @@ sub decode_7bit {
     my $self = shift;
     my $msg = shift;
 
+    return '' if not defined $msg or $msg eq '';
     return $msg if $msg =~ /[^0-9A-F]/i;
 
     $msg =~ s/^(..)//;
@@ -1714,6 +1719,7 @@ sub decode_7bit {
 sub encode_7bit {
     my $self = shift;
     my $msg = shift;
+    return '' if not defined $msg or $msg eq '';
     
     $msg = $self->convert_ascii_to_sms($msg);
 
@@ -1731,8 +1737,9 @@ sub encode_7bit {
 sub decode_ira {
     my $self = shift;
     my $msg = shift;
+    return '' if not defined $msg or $msg eq '';
 
-    if ($msg =~ s/^ //) {
+    if ($msg =~ /^ /) {
 	return $msg;
     }
     my $out = pack "H*", $msg;
@@ -1743,9 +1750,9 @@ sub decode_ira {
 sub encode_ira {
     my $self = shift;
     my $msg = shift;
-    
-    $msg =~ tr/@$\xe8\xe9\xf9\xec\xf2\xe0/\x00\x02\x05\x04\x06\x07\x08\x7f/;
-    my $out = uc unpack "H*", $msg;
+    return '' if not defined $msg or $msg eq '';
+
+    my $out = uc unpack "H*", $self->convert_ascii_to_sms($msg);
 
     return $out;
 }
