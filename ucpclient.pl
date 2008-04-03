@@ -7,7 +7,7 @@ use UCP;
 
 my %opt = ();
 while (@ARGV) {
-    if ($ARGV[0] =~ m/^(.*)=(.*)$/) {
+    if ($ARGV[0] =~ m/^(.*?)=(.*)$/) {
         $opt{$1} = $2;
         shift;
     }
@@ -75,15 +75,15 @@ sub r_xx_a {
 }
 
 
-sub r_xx_n_02 {
+sub r_xx_n {
     my $ref_msg = shift;
     return $ucp->make_message(
             op => $ref_msg->{ot},
             result => 1,
             trn => $ref_msg->{trn},
             nack => UCP::NACK,
-            ec => '02',
-            sm => ' '.$ucp->ec_string('02'),
+            ec => printf("%02d", defined $opt{ec} ? $opt{ec} : 4),
+            sm => ' '.$ucp->ec_string('04'),
     );
 }
 
@@ -116,7 +116,14 @@ sub parser_hook {
     }
     else {
         $counter{unknown}++;
-        $self->send(r_xx_n_02($ref_msg)) if $self->is_operation_message($ref_msg);
+	if ($self->is_operation_message($ref_msg)) {
+	    if (defined $opt{ec} and $opt{ec} > 0 or not defined $opt{ec}) {
+    		$self->send(r_xx_n($ref_msg));
+	    }
+	    else {
+    		$self->send(r_xx_a($ref_msg));
+	    }
+	}
     }
     return $msg;
 }
