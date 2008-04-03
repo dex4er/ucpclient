@@ -999,7 +999,7 @@ sub _make_5x {
         else {
             $text = defined $arg->{nmsg}
               && !defined $arg->{tmsg} ? $arg->{nmsg}
-	      : (defined $arg->{tmsg} ? $arg->{tmsg} : '');
+              : (defined $arg->{tmsg} ? $arg->{tmsg} : '');
         }
 
         $from = defined $arg->{oadc} ? (
@@ -1689,7 +1689,7 @@ sub convert_ascii_to_sms {
     my $self = shift;
     my $msg = shift;
     $msg =~ tr{\x40\x24\xe8\xe9\xf9\xec\xf2\x5f\xa7\xe0}
-	      {\x00\x02\x05\x04\x06\x07\x08\x11\x5f\x7f}
+              {\x00\x02\x05\x04\x06\x07\x08\x11\x5f\x7f}
         if defined $msg;
     return $msg;
 }
@@ -1720,7 +1720,7 @@ sub encode_7bit {
     my $self = shift;
     my $msg = shift;
     return '' if not defined $msg or $msg eq '';
-    
+
     $msg = $self->convert_ascii_to_sms($msg);
 
     my $len = length($msg) * 2;
@@ -1740,7 +1740,7 @@ sub decode_ira {
     return '' if not defined $msg or $msg eq '';
 
     if ($msg =~ /^ /) {
-	return $msg;
+        return $msg;
     }
     my $out = pack "H*", $msg;
     return $self->convert_sms_to_ascii($out);
@@ -1863,8 +1863,8 @@ use IO::Select;
 
 BEGIN {
     if ($Config{useithreads}) {
-	require threads;
-	import threads;
+        require threads;
+        import threads;
     }
 }
 
@@ -1971,7 +1971,7 @@ sub shutdown {
 }
 
 
-# spawn new 
+# spawn new
 sub _new_connection {
     my $self = shift;
     my $socket = shift;
@@ -2120,16 +2120,16 @@ use Config;
 
 BEGIN {
     if ($Config{useithreads}) {
-	require threads;
-	import  threads;
+        require threads;
+        import  threads;
 
-	require threads::shared;
-	import  threads::shared;
+        require threads::shared;
+        import  threads::shared;
 
-	require Thread::Queue;
-	import  Thread::Queue;
-	require Thread::Semaphore;
-	import  Thread::Semaphore;
+        require Thread::Queue;
+        import  Thread::Queue;
+        require Thread::Semaphore;
+        import  Thread::Semaphore;
     }
 }
 
@@ -2149,7 +2149,7 @@ sub _init {
     my %opt = @_;
 
     if (not $Config{useithreads}) {
-	require threads;
+        require threads;
     }
 
     $self->SUPER::_init(%opt);
