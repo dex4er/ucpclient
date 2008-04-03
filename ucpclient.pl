@@ -166,6 +166,8 @@ sub main {
 
         for (my $n = 0; $opt{Requests} == 0 || $n < $opt{Requests}; $n++) {
             $ucp->send(o_51) or last;
+	    $opt{adc} += $opt{AdcInc} if $opt{AdcInc};
+	    $opt{oadc} += $opt{OAdcInc} if $opt{OAdcInc};
             select(undef, undef, undef, $opt{Delay}) if $opt{Delay};
             $ucp->wait_free_trn;
         }
