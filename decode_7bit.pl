@@ -1,20 +1,11 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -pl
 
-use UCP;
+use Encode;
 
-my $ucp = UCP->new or die;
-
-my $cmd = $0;
-$cmd =~ s{.*/}{};
-$cmd =~ s{\.pl$}{};
-
-if (@ARGV) {
-    foreach (@ARGV) { print $ucp->$cmd($_), "\n"; }
-}
-else {
-    while ($_ = <STDIN>) {
-	chomp;
-	print $ucp->$cmd($_), "\n";
-    }
-}
-
+s/^(..)//;
+$l = (hex($1)+2)*4;
+$b = unpack "b*", pack "H*", $_;
+$b =~s /(.{7})/$1./g;
+$b = substr $b, 0, $l;
+$b = substr $b, 0, int(length($b)/8)*8;
+$_ = decode "GSM0338", pack "b*", $b;
