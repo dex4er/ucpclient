@@ -31,6 +31,8 @@ else {
 	    $msg .= $line;
 	}
 	else {
+	    $msg =~ s{^\D*(\d\d/)}{$1};
+	    $msg =~ s{(/\d\d)\D*$}{$1};
 	    dump_message $msg;
 	    $msg = "";
 	}
