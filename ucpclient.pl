@@ -47,7 +47,7 @@ sub o_60 {
         oton      => 6,
         styp      => 1,
         vers      => '0100',
-        oadc      => $opt{oadc},
+	oadc      => $opt{oadc},
     );
 }
 
@@ -112,18 +112,18 @@ sub parser_hook {
         $is_authorized = $ref_msg->{ack} ? 1 : 0;
     }
     elsif ($self->is_operation_message($ref_msg) and $ref_msg->{ot} eq '60') {
-        $self->send(r_60_a($ref_msg));
+	$self->send(r_60_a($ref_msg));
     }
     else {
         $counter{unknown}++;
-        if ($self->is_operation_message($ref_msg)) {
-            if (defined $opt{ec} and $opt{ec} > 0 or not defined $opt{ec}) {
-                $self->send(r_xx_n($ref_msg));
-            }
-            else {
-                $self->send(r_xx_a($ref_msg));
-            }
-        }
+	if ($self->is_operation_message($ref_msg)) {
+	    if (defined $opt{ec} and $opt{ec} > 0 or not defined $opt{ec}) {
+    		$self->send(r_xx_n($ref_msg));
+	    }
+	    else {
+    		$self->send(r_xx_a($ref_msg));
+	    }
+	}
     }
     return $msg;
 }
@@ -164,12 +164,32 @@ sub main {
             last unless $is_authorized;
         }
 
+        if (exists $opt{op} && $opt{op} eq "52" && exists $opt{oadc}) {
+            $opt{Msisdn} = $opt{oadc};
+        } else {
+            $opt{Msisdn} = $opt{adc};
+        }
         for (my $n = 0; $opt{Requests} == 0 || $n < $opt{Requests}; $n++) {
             $ucp->send(o_51) or last;
-            $opt{adc} += $opt{AdcInc} if $opt{AdcInc};
-            $opt{oadc} += $opt{OAdcInc} if $opt{OAdcInc};
             select(undef, undef, undef, $opt{Delay}) if $opt{Delay};
             $ucp->wait_free_trn;
+
+            if ( exists $opt{Inc} && $opt{Inc} ) {
+                if ((exists $opt{op} && $opt{op} eq "51" || ! exists $opt{op}) && exists $opt{adc}) {
+                    if ($opt{Mod}) {
+                        $opt{adc} = $opt{Msisdn} + ($n * $opt{Inc}) % $opt{Mod};
+                    } else {
+                        $opt{adc} = $opt{Msisdn} + $n * $opt{Inc};
+                    }
+                }
+                if (exists $opt{op} && $opt{op} eq "52" && exists $opt{oadc}) {
+                    if ($opt{Mod}) {
+                        $opt{oadc} = $opt{Msisdn} + ($n * $opt{Inc}) % $opt{Mod};
+                    } else {
+                        $opt{oadc} = $opt{Msisdn} + $n * $opt{Inc};
+                    }
+                }
+            }
         }
 
         select(undef, undef, undef, $opt{Sleep}) if $opt{Sleep};
@@ -184,7 +204,7 @@ sub main {
 
     show_stats;
 
-    printf "%.2f\n", $elapsed - $is_authorized if $opt{Benchmark} and $is_authorized;
+    printf "%.2f\n", $elapsed - $is_authorized if $opt{Benchmark} and ($is_authorized and $opt{pwd} or not $is_authorized);
 
 }
 
