@@ -1,19 +1,7 @@
-#!/usr/bin/perl -I/home/ucpgw/ucpclient
+#!/usr/bin/perl -pl
 
-use UCP;
+# Encode UTF-8 as ESTI GSM 03.38 IRA string
 
-my $ucp = UCP->new or die;
+use Encode;
 
-my $cmd = $0;
-$cmd =~ s{.*/}{};
-
-if (@ARGV) {
-    foreach (@ARGV) { print $ucp->$cmd($_), "\n"; }
-}
-else {
-    while ($_ = <STDIN>) {
-	chomp;
-	print $ucp->$cmd($_), "\n";
-    }
-}
-
+$_ = uc unpack "H*", encode "GSM0338", decode "UTF-8", $_;

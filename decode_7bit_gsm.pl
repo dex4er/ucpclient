@@ -1,5 +1,7 @@
 #!/usr/bin/perl -pl
 
+# Decode GSM 03.38 7-bit string to UTF-8
+
 use Encode;
 
 s/^(..)//;
