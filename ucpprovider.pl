@@ -23,8 +23,8 @@ our %whitelist = (
 our %opt = ();
 while (@ARGV) {
     if ($ARGV[0] =~ m/^(.*)=(.*)$/) {
-	$opt{$1} = $2;
-	shift;
+        $opt{$1} = $2;
+        shift;
     }
 }
 
@@ -51,12 +51,12 @@ my $ucp = UCP::Manager->new(%opt) or die;
 sub o_51 {
     my $ref_msg = shift;
     return $ucp->make_message(
-	op        => 51,
-	operation => 1,
-	adc       => $ref_msg->{oadc},
-	amsg      => $ref_msg->{amsg},
-	mt        => 3,
-	oadc      => $ref_msg->{adc},
+        op        => 51,
+        operation => 1,
+        adc       => $ref_msg->{oadc},
+        amsg      => $ref_msg->{amsg},
+        mt        => 3,
+        oadc      => $ref_msg->{adc},
     );
 }
 
@@ -64,9 +64,9 @@ sub o_51 {
 sub r_xx_a {
     my $ref_msg = shift;
     return $ucp->make_message(
-	    op => $ref_msg->{ot},
-	    result => 1,
-	    trn => $ref_msg->{trn},
+            op => $ref_msg->{ot},
+            result => 1,
+            trn => $ref_msg->{trn},
             ack => UCP::ACK,
             sm => $ref_msg->{adc} . ':' . $ucp->make_scts,
     );
@@ -76,11 +76,11 @@ sub r_xx_a {
 sub r_xx_n_02 {
     my $ref_msg = shift;
     return $ucp->make_message(
-	    op => $ref_msg->{ot},
-	    result => 1,
-	    trn => $ref_msg->{trn},
+            op => $ref_msg->{ot},
+            result => 1,
+            trn => $ref_msg->{trn},
             nack => UCP::NACK,
-	    ec => '02',
+            ec => '02',
             sm => $ucp->ec_string('02'),
     );
 }
@@ -104,24 +104,24 @@ sub parser_hook {
 
     if ($self->is_operation_message($ref_msg)) {
         $counter{o}++;
-	if ($ref_msg->{ot} eq '52') {
-	    $self->send(r_xx_a($ref_msg));
-	    if ($whitelist{$ref_msg->{oadc}}) {
-		$self->send(o_51($ref_msg));
-	    }
-	} 
-	else {
-	    $self->send(r_xx_n_02($ref_msg));
-	    $counter{unknown}++;
-	}
+        if ($ref_msg->{ot} eq '52') {
+            $self->send(r_xx_a($ref_msg));
+            if ($whitelist{$ref_msg->{oadc}}) {
+                $self->send(o_51($ref_msg));
+            }
+        }
+        else {
+            $self->send(r_xx_n_02($ref_msg));
+            $counter{unknown}++;
+        }
     } else {
-	$counter{r}++;
-	if ($ref_msg->{ot} eq '51') {
-	    $counter{r_51_ack}++;
-	} 
-	else {
-	    $counter{unknown}++;
-	}
+        $counter{r}++;
+        if ($ref_msg->{ot} eq '51') {
+            $counter{r_51_ack}++;
+        }
+        else {
+            $counter{unknown}++;
+        }
     }
     return $msg;
 }
@@ -137,7 +137,7 @@ sub receiver_hook {
 
 sub show_stats {
     $ucp->debug(msg=>sprintf('%d msgs sent, %d msgs received, %d msgs responsed, %d msgs ack, %d msgs unknown',
-	$counter{o_51}, $counter{o}, $counter{r}, $counter{r_51_ack}, $counter{unknown}));
+        $counter{o_51}, $counter{o}, $counter{r}, $counter{r_51_ack}, $counter{unknown}));
 }
 
 
@@ -166,13 +166,13 @@ sub main {
     $ucp->create;
 
     until ($ucp->{Shutdown}) {
-	select(undef, undef, undef, $opt{Delay}) if $opt{Delay};
+        select(undef, undef, undef, $opt{Delay}) if $opt{Delay};
     }
 
     select(undef, undef, undef, $opt{Sleep}) if $opt{Sleep};
 
     show_stats;
-    
+
     $ucp->join;
 }
 

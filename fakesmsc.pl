@@ -44,25 +44,25 @@ sub connection {
 
         my $ref_msg = $ucp->parse_message($recv_msg);
 
-	$counter{o}++ if $ucp->is_operation_message($ref_msg);
-	$counter{r}++ if $ucp->is_result_message($ref_msg);
+        $counter{o}++ if $ucp->is_operation_message($ref_msg);
+        $counter{r}++ if $ucp->is_result_message($ref_msg);
 
         if ($ref_msg->{type} eq UCP::OPERATION and $ref_msg->{ot} eq '51') {
 
-	    my $is_unknown = 0;
-	    my $is_positive = 1;
+            my $is_unknown = 0;
+            my $is_positive = 1;
             if ($ref_msg->{amsg} =~ /^R51([+-])(\d+)/) {
-		$is_positive = $1 eq '+' ? 1 : 0;
-		my $delay = $2;
-		sleep($delay);
-	    }
+                $is_positive = $1 eq '+' ? 1 : 0;
+                my $delay = $2;
+                sleep($delay);
+            }
 
-	    my $sm = $ref_msg->{adc} . ':' . $ucp->make_scts;
+            my $sm = $ref_msg->{adc} . ':' . $ucp->make_scts;
             my $resp_msg = $ucp->make_message(
                 op => '51',
                 result => 1,
                 trn => $ref_msg->{trn},
-		ec => $is_positive ? '' : '02',
+                ec => $is_positive ? '' : '02',
                 ack => $is_positive ? UCP::ACK : undef,
                 nack => $is_positive ? undef : UCP::NACK,
                 sm => $is_positive ? $sm : ' Negative response requested',
@@ -86,27 +86,27 @@ sub connection {
             }
 
             if ($ref_msg->{amsg} =~ /^O53([+\?-])(\d+)/) {
-		$is_positive = $1 eq '+' ? 1 : 0;
-		$is_unknown = $1 eq '?' ? 1 : 0;
-		my $delay = $2;
-		sleep($delay);
-		# sm   => "503970092:241006090123"
-		# scts =>           "241006090123"
-		# id   =             061024090123
-		my $scts;
-		if ($sm =~ /^(?:\d+)?:(\d+)$/) {
-		    $scts = $1;
-		}
-		else {
-		    $scts = $ucp->make_scts;
-		}
-		$scts =~ /^(\d\d)(\d\d)(\d\d)(\d\d\d\d\d\d)$/;
-		my $id = $3.$2.$1.$4;
-		my $amsg = $is_positive ? 
-		    POSIX::strftime("Wiadomosc dla %%s, z identyfikatorem %%s zostala dostarczona %Y-%m-%d o %H:%M:%S.", localtime) :
-		    ($is_unknown ? 
-			"Wiadomosc dla %s, z identyfikatorem  %s nie mogla byc dostarczona z powodu  Unknown problem (kod 666)" :
-			"Wiadomosc dla %s, z identyfikatorem  %s nie mogla byc dostarczona z powodu  VP exceeded (kod 65283)");
+                $is_positive = $1 eq '+' ? 1 : 0;
+                $is_unknown = $1 eq '?' ? 1 : 0;
+                my $delay = $2;
+                sleep($delay);
+                # sm   => "503970092:241006090123"
+                # scts =>           "241006090123"
+                # id   =             061024090123
+                my $scts;
+                if ($sm =~ /^(?:\d+)?:(\d+)$/) {
+                    $scts = $1;
+                }
+                else {
+                    $scts = $ucp->make_scts;
+                }
+                $scts =~ /^(\d\d)(\d\d)(\d\d)(\d\d\d\d\d\d)$/;
+                my $id = $3.$2.$1.$4;
+                my $amsg = $is_positive ?
+                    POSIX::strftime("Wiadomosc dla %%s, z identyfikatorem %%s zostala dostarczona %Y-%m-%d o %H:%M:%S.", localtime) :
+                    ($is_unknown ?
+                        "Wiadomosc dla %s, z identyfikatorem  %s nie mogla byc dostarczona z powodu  Unknown problem (kod 666)" :
+                        "Wiadomosc dla %s, z identyfikatorem  %s nie mogla byc dostarczona z powodu  VP exceeded (kod 65283)");
                 my $send_msg = $ucp->make_message(
                     op => '53',
                     operation => 1,
@@ -115,34 +115,34 @@ sub connection {
                     mt => 3,
                     oadc => $ref_msg->{adc},
                     dst => $is_positive ? 0 : 2,
-		    rsn => ($is_positive || $is_unknown) ? "000" : "108",
+                    rsn => ($is_positive || $is_unknown) ? "000" : "108",
                     scts => $scts,
-		    dscts => $ucp->make_scts,
+                    dscts => $ucp->make_scts,
                 );
                 $ucp->send($send_msg);
             }
         }
 
         elsif ($ref_msg->{type} eq UCP::OPERATION and $ref_msg->{ot} eq '60') {
-	    my $resp_msg;
-	    if ($ref_msg->{pwd} eq $opt{pwd}) {
-        	$resp_msg = $ucp->make_message(
-            	    op => '60',
+            my $resp_msg;
+            if ($ref_msg->{pwd} eq $opt{pwd}) {
+                $resp_msg = $ucp->make_message(
+                    op => '60',
                     result => 1,
                     trn => $ref_msg->{trn},
                     ack => UCP::ACK,
                 );
-	    }
-	    else {
-        	$resp_msg = $ucp->make_message(
-            	    op => '60',
+            }
+            else {
+                $resp_msg = $ucp->make_message(
+                    op => '60',
                     result => 1,
                     trn => $ref_msg->{trn},
                     nack => UCP::NACK,
-		    ec => '04',
+                    ec => '04',
                     sm => ' Password incorrect',
                 );
-	    }
+            }
             $ucp->send($resp_msg);
         }
     }

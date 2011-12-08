@@ -57,25 +57,25 @@ sub connection {
         }
 
         elsif ($ref_msg->{type} eq UCP::OPERATION and $ref_msg->{ot} eq '60') {
-	    my $resp_msg;
-	    if (0 and $ref_msg->{pwd} eq 'pwd') {
-        	$resp_msg = $ucp->make_message(
-            	    op => '60',
+            my $resp_msg;
+            if (0 and $ref_msg->{pwd} eq 'pwd') {
+                $resp_msg = $ucp->make_message(
+                    op => '60',
                     result => 1,
                     trn => $ref_msg->{trn},
                     ack => UCP::ACK,
                 );
-	    }
-	    else {
-        	$resp_msg = $ucp->make_message(
-            	    op => '60',
+            }
+            else {
+                $resp_msg = $ucp->make_message(
+                    op => '60',
                     result => 1,
                     trn => $ref_msg->{trn},
                     nack => UCP::NACK,
-		    ec => '04',
+                    ec => '04',
                     sm => 'Password incorrect',
                 );
-	    }
+            }
             $ucp->send($resp_msg);
         }
     }

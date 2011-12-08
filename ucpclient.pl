@@ -47,7 +47,7 @@ sub o_60 {
         oton      => 6,
         styp      => 1,
         vers      => '0100',
-	oadc      => $opt{oadc},
+        oadc      => $opt{oadc},
     );
 }
 
@@ -112,18 +112,18 @@ sub parser_hook {
         $is_authorized = $ref_msg->{ack} ? 1 : 0;
     }
     elsif ($self->is_operation_message($ref_msg) and $ref_msg->{ot} eq '60') {
-	$self->send(r_60_a($ref_msg));
+        $self->send(r_60_a($ref_msg));
     }
     else {
         $counter{unknown}++;
-	if ($self->is_operation_message($ref_msg)) {
-	    if (defined $opt{ec} and $opt{ec} > 0 or not defined $opt{ec}) {
-    		$self->send(r_xx_n($ref_msg));
-	    }
-	    else {
-    		$self->send(r_xx_a($ref_msg));
-	    }
-	}
+        if ($self->is_operation_message($ref_msg)) {
+            if (defined $opt{ec} and $opt{ec} > 0 or not defined $opt{ec}) {
+                $self->send(r_xx_n($ref_msg));
+            }
+            else {
+                $self->send(r_xx_a($ref_msg));
+            }
+        }
     }
     return $msg;
 }
