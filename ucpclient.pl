@@ -47,7 +47,7 @@ sub o_60 {
         oton      => 6,
         styp      => 1,
         vers      => '0100',
-        oadc      => $opt{oadc},
+        oadc      => $opt{LA} || $opt{oadc},
     );
 }
 
