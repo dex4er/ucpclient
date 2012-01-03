@@ -37,4 +37,4 @@ Dzięki temu narzędziu można sterminować połączenie na UCPGW bez konieczno�
 
 Przykład:
 
- ucpgw@ucpgw-sc$ fakesmsc PeerAddr=10.12.16.99 PeerPort=12345
+ ucpgw@ucpgw-sc$ fakesmsc LocalAddr=10.12.16.99 LocalPort=12345
