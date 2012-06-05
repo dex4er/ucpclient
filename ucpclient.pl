@@ -2,6 +2,7 @@
 
 use strict;
 use Time::HiRes qw(gettimeofday tv_interval);
+use List::Util qw(max);
 use UCP;
 
 
@@ -13,8 +14,10 @@ while (@ARGV) {
     }
 }
 
+my @adc = split /,/, $opt{adc};
+my @oadc = split /,/, $opt{oadc} if $opt{oadc} =~ /^[\d,]+$/;
 
-$opt{Requests} = 1 unless exists $opt{Requests};
+$opt{Requests} = max(scalar @adc, scalar @oadc) unless exists $opt{Requests};
 
 $opt{ParserHook} = \&parser_hook;
 $opt{SenderHook} = \&sender_hook;
@@ -170,6 +173,8 @@ sub main {
             $opt{Msisdn} = $opt{adc};
         }
         for (my $n = 0; $opt{Requests} == 0 || $n < $opt{Requests}; $n++) {
+            $opt{adc} = shift @adc if @adc;
+            $opt{oadc} = shift @oadc if @oadc;
             $ucp->send(o_51) or last;
             select(undef, undef, undef, $opt{Delay}) if $opt{Delay};
             $ucp->wait_free_trn;
