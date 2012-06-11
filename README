@@ -20,7 +20,7 @@ Klient protokołu UCP. Wszystkie parametry są opcjonalne:
 
 Zdiagnozowanie referencyjnego LA:
 
- ucpgw@ucpgw-sc$ ucpclient PeerAddr=10.12.16.99 PeerPort=5638 pwd=pwd amsg=AnswerMe oadc=6638 adc=500000 pwd=pwd Requests=1 Sleep=1
+ $ ucpclient.pl PeerAddr=10.12.16.99 PeerPort=5638 pwd=pwd amsg=AnswerMe oadc=6638 adc=500000 pwd=pwd Requests=1 Sleep=1
  Mon Jun 12 18:06:12 2006 C >>> [00/00045/O/60/6638/6/5/1/707764//0100//////71]
  Mon Jun 12 18:06:12 2006 C <<< [00/00019/R/60/A//6D]
  Mon Jun 12 18:06:13 2006 C >>> [00/00076/O/51/500000/6638/////////////////3//416E737765724D65/////////////7B]
@@ -31,10 +31,14 @@ Zdiagnozowanie referencyjnego LA:
 
 === fakesmsc ===
 
-Serwer protokołu UCP, który odpowiada ramkami R/51 na ramki O/51 i dodatkowo wysyła ramkę O/52 jeżeli amsg=AnswerMe. Ponadto odpowiada R/60/A na ramkę O/60 jeśli pwd=pwd, albo R/60/N jeżeli pwd jest inne.
+Serwer protokołu UCP, który odpowiada ramkami R/51 na ramki O/51 i dodatkowo
+wysyła ramkę O/52 jeżeli amsg=AnswerMe. Ponadto odpowiada R/60/A na ramkę
+O/60 jeśli pwd=pwd, albo R/60/N jeżeli pwd jest inne.
 
-Dzięki temu narzędziu można sterminować połączenie na UCPGW bez konieczności podłączenia się do prawdziwego SMSC. W szczególności działa takie zestawienie: ucpclient <> UCPGW <> fakesmsc
+Dzięki temu narzędziu można sterminować połączenie na UCPGW bez
+konieczności podłączenia się do prawdziwego SMSC. W szczególności
+działa takie zestawienie: ucpclient <> UCPGW <> fakesmsc
 
 Przykład:
 
- ucpgw@ucpgw-sc$ fakesmsc LocalAddr=10.12.16.99 LocalPort=12345
+ $ fakesmsc.pl Listen=1 LocalAddr=127.0.0.1 LocalPort=12345 DebugLevel=4
