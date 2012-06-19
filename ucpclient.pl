@@ -17,7 +17,7 @@ while (@ARGV) {
 my @adc = split /,/, $opt{adc};
 my @oadc = split /,/, $opt{oadc} if $opt{oadc} =~ /^[\d,]+$/;
 
-$opt{Requests} = max(scalar @adc, scalar @oadc) unless exists $opt{Requests};
+$opt{Requests} = max(scalar @adc, scalar @oadc) || 1 unless exists $opt{Requests};
 
 $opt{ParserHook} = \&parser_hook;
 $opt{SenderHook} = \&sender_hook;
@@ -172,7 +172,7 @@ sub main {
         } else {
             $opt{Msisdn} = $opt{adc};
         }
-        for (my $n = 0; $opt{Requests} == 0 || $n < $opt{Requests}; $n++) {
+        for (my $n = 0; $n < $opt{Requests}; $n++) {
             $opt{adc} = shift @adc if @adc;
             $opt{oadc} = shift @oadc if @oadc;
             $ucp->send(o_51) or last;
